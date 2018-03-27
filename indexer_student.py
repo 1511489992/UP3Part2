@@ -71,7 +71,7 @@ class PIndex(Index):
     def load_poems(self):
         poem_file = open(self.name, 'r')
         for line in poem_file:
-            self.add_msg_and_index(line)
+            self.add_msg_and_index(line.rstrip())
         poem_file.close()
         return
     
