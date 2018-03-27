@@ -25,6 +25,8 @@ class Index:
         
     # implement
     def add_msg(self, m):
+        self.msgs.append(m)
+        self.total_msgs += 1
         return
         
     def add_msg_and_index(self, m):
@@ -34,8 +36,9 @@ class Index:
 
     # implement
     def indexing(self, m, l):
-        
-        
+        words = m.split()
+        for a_word in words:
+            self.index[a_word] = self.index.get(a_word, []) + [l]         
         return
 
     # implement: query interface
@@ -51,6 +54,8 @@ class Index:
                   
         ''' 
         msgs = []
+        for l_num in self.index[term]:
+            msgs.append((l_num, self.get_msg(l_num)))
         return msgs
 
 class PIndex(Index):
@@ -64,12 +69,25 @@ class PIndex(Index):
         # implement: 1) open the file for read, then call
         # the base class's add_msg_and_index
     def load_poems(self):
-       return
+        poem_file = open(self.name, 'r')
+        for line in poem_file:
+            self.add_msg_and_index(line)
+        poem_file.close()
+        return
     
         # implement: p is an integer, get_poem(1) returns a list,
         # each item is one line of the 1st sonnet
     def get_poem(self, p):
         poem = []
+        #find the starting line
+        poem_num = self.int2roman[p] + '.'
+        start_l = self.search(poem_num)[0][0]
+        #fing the end
+        next_poem_num = self.int2roman[p+1] + '.'
+        end_l = self.search(next_poem_num)[0][0]
+        #retrieve lines
+        for i in range(start_l, end_l):
+            poem.append(self.msgs[i])
         return poem
 
 if __name__ == "__main__":
