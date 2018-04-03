@@ -36,9 +36,14 @@ class Group:
             
     #implement
     def leave(self, name):
-        self.disconnect(name)
-        del self.members[name]
-        return
+        try:
+            if self.members[name] == S_TALKING:
+                self.disconnect(name)
+            del self.members[name]
+        except:
+             print("Error: {} is not a member".format(name))
+        finally:
+            return
         
     #implement                
     def find_group(self, name):
@@ -53,8 +58,13 @@ class Group:
         
     #implement                
     def connect(self, me, peer):
-        self.members[me] = S_TALKING
-        self.members[peer] = S_TALKING
+        #Error: user is not a member
+        if not (self.is_member(me) and self.is_member(peer)):
+            print("Error: {} and/or {} is not a member".format(me, peer))
+            return
+        #Error: user has already been in a group
+        if self.members[me] == S_TALKING:
+            self.disconnect(me)
         #if peer is in a group, join it
         peer_in_group, group_key = self.find_group(peer)
         # otherwise, create a new group with you and your peer
@@ -63,10 +73,22 @@ class Group:
         else:
             self.grp_ever += 1
             self.chat_grps[self.grp_ever] = [me] + [peer]
+        #set the user's state
+        self.members[me] = S_TALKING
+        self.members[peer] = S_TALKING
         return
 
     #implement                
     def disconnect(self, me):
+        #Error: user is not a member
+        if not self.is_member(me):
+            print("Error: {} is not a member".format(me))
+            return
+        #Error: user is not in a group
+        if self.members[me] == S_ALONE:
+            print("Error: {} isn't in any group".format(me))
+            return
+        #set the user's state
         self.members[me] = S_ALONE
         # find myself in the group, quit
         for grp_key,group in self.chat_grps.items():
@@ -75,7 +97,6 @@ class Group:
                 break
         if len(group) == 1:
             self.members[group[0]] = S_ALONE
-            self.grp_ever -= 1
             del self.chat_grps[grp_key]
         return
         
@@ -94,9 +115,8 @@ class Group:
             else:
                 full_list += 'TALKING\n'
         full_list += "Groups: -----------" + "\n"
-        full_list += "Group Number\tMembers\n"
         for k,v in self.chat_grps.items():
-            full_list += '     {:<10}'.format(k) + str(v) + '\n'
+            full_list += '  {:<8}'.format(k) + str(v) + '\n'
         full_list += '\n'
         return full_list
 
