@@ -1,6 +1,5 @@
 """
 Created on Tue Jul 22 00:47:05 2014
-
 @author: alina, zzhang
 """
 
@@ -120,13 +119,21 @@ class Server:
                 from_name = self.logged_sock2name[from_sock]
                 # Finding the list of people to send to
                 # and index message
-                pass
+#                pass
+#                the_guys = self.group.list_me(from_name)[1:]
+#                for g in the_guys:
+#                    to_sock = self.logged_name2sock[g]
+#                    pass
+#                    mysend(to_sock, "...Remember to index the messages before sending, or search won't work")
+                msg_content = msg["message"]
                 the_guys = self.group.list_me(from_name)[1:]
                 for g in the_guys:
                     to_sock = self.logged_name2sock[g]
-                    pass
-                    mysend(to_sock, "...Remember to index the messages before sending, or search won't work")
-
+                    self.indices[g].add_msg_and_index(msg_content)
+                    mysend(to_sock, json.dumps({"action":"exchange", \
+                                                "from":"[" + from_name + "]", \
+                                                "message":msg_content}))
+                self.indices[from_name].add_msg_and_index(msg_content)
 #==============================================================================
 # the "from" guy has had enough (talking to "to")!
 #==============================================================================
@@ -139,13 +146,18 @@ class Server:
                     g = the_guys.pop()
                     to_sock = self.logged_name2sock[g]
                     mysend(to_sock, json.dumps({"action":"disconnect"}))
+                    
 #==============================================================================
 #                 listing available peers: IMPLEMENT THIS
 #==============================================================================
             elif msg["action"] == "list":
-                pass
-                msg = "needs to use self.group functions to work"
+#                pass
+#                msg = "needs to use self.group functions to work"
+#                mysend(from_sock, json.dumps({"action":"list", "results":msg}))
+                from_name = self.logged_sock2name[from_sock]
+                msg = self.group.list_all(from_name)
                 mysend(from_sock, json.dumps({"action":"list", "results":msg}))
+                 
 #==============================================================================
 #             retrieve a sonnet : IMPLEMENT THIS
 #==============================================================================
@@ -154,6 +166,7 @@ class Server:
                 poem = "needs to use self.sonnet functions to work"
                 print('here:\n', poem)
                 mysend(from_sock, json.dumps({"action":"poem", "results":poem}))
+               
 #==============================================================================
 #                 time
 #==============================================================================
@@ -164,8 +177,16 @@ class Server:
 #                 search: : IMPLEMENT THIS
 #==============================================================================
             elif msg["action"] == "search":
-                pass # get search search_rslt
-                search_rslt = "needs to use self.indices search to work"
+#                pass # get search search_rslt
+#                search_rslt = "needs to use self.indices search to work"
+#                print('server side search: ' + search_rslt)
+#                mysend(from_sock, json.dumps({"action":"search", "results":search_rslt}))
+                # get search search_rslt
+                search_target = msg["target"] 
+                search_rslt = ''
+                the_guys = self.group.list_me(from_name)
+                for g in the_guys:
+                    search_rslt += self.indices[g].search(search_target)
                 print('server side search: ' + search_rslt)
                 mysend(from_sock, json.dumps({"action":"search", "results":search_rslt}))
 
